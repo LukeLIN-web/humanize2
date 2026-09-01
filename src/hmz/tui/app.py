@@ -98,13 +98,21 @@ from .tally import Tally
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
+    from typing import Protocol
 
     from pydantic import BaseModel
 
     from hmz.agents import AgentBase, Board, Event, Question, SessionBase
     from hmz.flows import Place
-    from hmz.runner import Runner
     from hmz.sdk import Session
+
+    class _Runner(Protocol):
+        """The run controls the TUI needs without naming the runner layer."""
+
+        def stop(self) -> None: ...
+
+        def watch_agents(self, listener: Callable[[AgentBase], None]) -> None: ...
+
 
 #: What the editor understands, named as opencode names them, one step along: what answers
 #: here is a flow rather than an agent, so opencode's `/agents` is `/flow`, and what a flow
@@ -847,7 +855,7 @@ class Humanize(App[None]):
         self._agents: list[AgentBase] = []
         #: The controller of that run. Unlike an agent list snapshot, this also catches an
         #: agent registered at the same moment the run is being stopped.
-        self._runner: Runner | None = None
+        self._runner: _Runner | None = None
         #: What the flow has done so far, which is what the right-hand column shows, and who
         #: reads the agents' own logs into it while it runs.
         self._monitor = Monitor()
